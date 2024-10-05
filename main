@@ -1,0 +1,226 @@
+#include "main.h"
+
+//Variables para los contadores y los modos
+int contador_binario = 0, contador_decadas = 0, Modo = 1;
+
+//Código hecho por el programa
+void SystemClock_Config(void); 
+static void MX_GPIO_Init(void);
+void EncenderLEDs (void); //Definir la función para encender los LEDs
+
+int main(void)
+{
+  HAL_Init();
+  SystemClock_Config();
+  MX_GPIO_Init();
+  while (1)
+    {
+	    HAL_Delay(250);
+	    if (HAL_GPIO_ReadPin(Modo_GPIO_Port, Modo_Pin) == 0) {
+		    Modo = Modo + 1; //Cambio en el modo
+		    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0); //Reiniciar los LEDs
+		    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+		    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 0);
+		    HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, 0);
+	    }
+      //If cuando el boton para sumar es presionado
+	    if (HAL_GPIO_ReadPin(Suma_GPIO_Port, Suma_Pin) == 0) {
+		    contador_binario = contador_binario + 1; //Aumentar en 1 el contador y Encender los LEDs
+		    contador_decadas = contador_decadas + 1;
+		    EncenderLEDs();
+	    }
+      //If cuando el boton para restar es presionado
+	    if (HAL_GPIO_ReadPin(Resta_GPIO_Port, Resta_Pin) == 1) {
+		    contador_binario = contador_binario - 1; //Disminuir en 1 el contador y Encender los LEDs
+		    contador_decadas = contador_decadas - 1;
+		    EncenderLEDs();
+	    }  
+  }
+}
+
+//***********************************************************************************
+//Código hecho por el programa
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+/* USER CODE BEGIN MX_GPIO_Init_1 */
+/* USER CODE END MX_GPIO_Init_1 */
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LED2_Pin|LED3_Pin|LED1_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : Modo_Pin */
+  GPIO_InitStruct.Pin = Modo_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(Modo_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Suma_Pin */
+  GPIO_InitStruct.Pin = Suma_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(Suma_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Resta_Pin */
+  GPIO_InitStruct.Pin = Resta_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(Resta_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : LED4_Pin */
+  GPIO_InitStruct.Pin = LED4_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LED4_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LED2_Pin LED3_Pin LED1_Pin */
+  GPIO_InitStruct.Pin = LED2_Pin|LED3_Pin|LED1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+/* USER CODE BEGIN MX_GPIO_Init_2 */
+/* USER CODE END MX_GPIO_Init_2 */
+}
+
+/* USER CODE BEGIN 4 */
+//******************************************************************************
+void EncenderLEDs () {
+	Modo = Modo%2; //Hace que el modo sea 1 o 0
+	if (Modo) { //Modo binario cuando la variable es 1
+		if (contador_binario >= 16) { //Condición cuando el valor supera el del contador
+			contador_binario = 0;
+		} else if (contador_binario <= -1) { //Condición cuando el valor es menor al del contador
+			contador_binario = 15;
+		}
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (contador_binario >> 0) & 0x01); //Imprime los valores para los LEDs del 1 al 4
+		HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (contador_binario >> 1) & 0x01); //Hace un AND con 1 para cada LED y así encenderlos o apagarlos
+		HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, (contador_binario >> 2) & 0x01);
+		HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, (contador_binario >> 3) & 0x01);
+	} else { //Else cuando el modo es 0
+		if (contador_decadas >= 5) { //Mantiene al contador de decadas entre 0 y 3
+			contador_decadas = 0;
+		} else if (contador_decadas <= -1) {
+			contador_decadas = 4;
+		}
+		switch (contador_decadas) { //Swtich case para encender los leds para el contador de decadas
+			case 0:
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0); //Apaga todos los LEDs cuando el contador es 0
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+				HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 0);
+				HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, 0);
+				break;
+			case 1:
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 1); //Enciende el primer LED cuando el contador es 1
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+				HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 0);
+				HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, 0);
+				break;
+			case 2:
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0); //Enciende el segundo LED cuando el contador es 2
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 1);
+				HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 0);
+				HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, 0);
+				break;
+			case 3:
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0); //Enciende el tercer LED cuando el contador es 3
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+				HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 1);
+				HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, 0);
+			case 4:
+				HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, 0); //Enciende el cuarto LED cuando el contador es 4
+				HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, 0);
+				HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, 0);
+				HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, 1);
+				break;
+		}
+	}
+}
+//************************************************************
+//Más código hecho por el programa
+/* USER CODE END 4 */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
+//**************************************************
